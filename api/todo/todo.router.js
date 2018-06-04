@@ -1,11 +1,15 @@
 const todoRouter = require('express').Router();
 const Todo = require('./todo.model');
 
-let todos = [];
-let id = 0;
+let todos = [{
+  id: "1",
+  name: "First todo",
+  description: "First todo description"
+}];
+let id = todos.length + 1;
 /** increment id and attach it to request object */
 const assignUniqueId = (req, res, next) => {
-  id++;
+  id = todos.length + 1;
   req.body.todo.id = id + '';
   next();
 }
@@ -41,6 +45,7 @@ const assignUniqueId = (req, res, next) => {
  * DO NOT use it in the later classes, use your own functions and
  * follow the REST conventions. This `/insert` is just for explanation, don't use it.
  */
+
 todoRouter.post('/insert', (req, res, next) => { // endpoint '/todo/insert', method : 'POST'
   const newTodo = req.body.todo;
   let todoItem = new Todo(newTodo);
@@ -59,8 +64,15 @@ todoRouter.post('/insert', (req, res, next) => { // endpoint '/todo/insert', met
 });
 
 todoRouter.get('/', (req, res) => { // endpoint '/todo/', method : 'GET'
-  res.json(todos);
+  Todo.find((err, todos) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(todos);
+    }
+  });
 });
+
 
 todoRouter.get('/:id', (req, res) => { // endpoint '/todo/:id', method : 'GET'
   const todo = todos.find(todoItem => {
@@ -78,11 +90,19 @@ todoRouter.get('/:id', (req, res) => { // endpoint '/todo/:id', method : 'GET'
 });
 
 todoRouter.post('/', assignUniqueId, (req, res) => { // endpoint '/todo/', method : 'POST'
-  let todo = req.body.todo;
-  todos.push(todo);
-  res.json({
-    todo: todo,
-    message: "Todo added successfully"
+  const newTodo = req.body.todo;
+  let todoItem = new Todo(newTodo);
+  todoItem.save((err, savedTodo) => {
+    if (!err) {
+      res.json({
+        todo: savedTodo,
+        message: "Todo added successfully"
+      });
+    } else {
+      res.json({
+        error: err
+      })
+    }
   });
 });
 
