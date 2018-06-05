@@ -1,5 +1,6 @@
 const todoRouter = require('express').Router();
 const Todo = require('./todo.model');
+const TodoFunctions = require('./todo.service');
 
 let todos = [{
   id: "1",
@@ -64,13 +65,17 @@ todoRouter.post('/insert', (req, res, next) => { // endpoint '/todo/insert', met
 });
 
 todoRouter.get('/', (req, res) => { // endpoint '/todo/', method : 'GET'
-  Todo.find((err, todos) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(todos);
-    }
-  });
+  const todos = TodoFunctions.findAll();
+  res.json(todos);
+
+  // Todo.find((err, todos) => {
+  //   if (err) {
+  //     console.log(err);
+  //   } else {
+  //     const todos = TodoFunctions.findAll();
+  //     res.json(todos);
+  //   }
+  // });
 });
 
 
