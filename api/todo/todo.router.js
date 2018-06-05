@@ -2,16 +2,11 @@ const todoRouter = require('express').Router();
 const Todo = require('./todo.model');
 const TodoFunctions = require('./todo.service');
 
-let todos = [{
-  id: "1",
-  name: "First todo",
-  description: "First todo description"
-}];
-let id = todos.length + 1;
+let id = 0;
 /** increment id and attach it to request object */
 const assignUniqueId = (req, res, next) => {
-  id = todos.length + 1;
-  req.body.todo.id = id + '';
+  id++;
+  req.body.todo._id = id;
   next();
 }
 
@@ -39,59 +34,32 @@ const assignUniqueId = (req, res, next) => {
 //   }
 // })
 
-
-/**
- * @author Ahsan Ayaz, Siraj Ul Haq
- * @desc Sample method for inserting a todo to the database.
- * DO NOT use it in the later classes, use your own functions and
- * follow the REST conventions. This `/insert` is just for explanation, don't use it.
- */
-
-todoRouter.post('/insert', (req, res, next) => { // endpoint '/todo/insert', method : 'POST'
-  const newTodo = req.body.todo;
-  let todoItem = new Todo(newTodo);
-  todoItem.save((err, savedTodo) => {
-    if (!err) {
-      res.json({
-        todo: savedTodo,
-        message: "Todo added successfully"
-      });
+todoRouter.get('/', (req, res) => { // endpoint '/todo/', method : 'GET'
+  Todo.find((err, todos) => {
+    if (err) {
+      console.log(err);
     } else {
-      res.json({
-        error: err
-      })
+      res.json(todos);
     }
   });
 });
 
-todoRouter.get('/', (req, res) => { // endpoint '/todo/', method : 'GET'
-  const todos = TodoFunctions.findAll();
-  res.json(todos);
-
-  // Todo.find((err, todos) => {
-  //   if (err) {
-  //     console.log(err);
-  //   } else {
-  //     const todos = TodoFunctions.findAll();
-  //     res.json(todos);
-  //   }
-  // });
-});
-
 
 todoRouter.get('/:id', (req, res) => { // endpoint '/todo/:id', method : 'GET'
-  const todo = todos.find(todoItem => {
-    return todoItem.id === req.params.id; // matching each element's id with the id we've got from params
+  let todoId = req.params.id;
+
+  Todo.findById({_id: todoId}, (err, todo) => {
+    if (todo) {
+      res.json({
+        todo: todo,
+        message: "Todo found successfully"
+      });
+    } else {
+      res.json({
+        error: `Todo not found using id: ${req.params.id}`
+      })
+    }
   });
-  if (todo) {
-    res.json({
-      todo: todo
-    });
-  } else {
-    res.json({
-      error: `Todo not found using id: ${req.params.id}`
-    })
-  }
 });
 
 todoRouter.post('/', assignUniqueId, (req, res) => { // endpoint '/todo/', method : 'POST'
@@ -112,42 +80,38 @@ todoRouter.post('/', assignUniqueId, (req, res) => { // endpoint '/todo/', metho
 });
 
 todoRouter.put('/:id', (req, res) => { // endpoint '/todo/:id', method : 'PUT'
-  let update = req.body.todo;
-  const todoToUpdate = todos.find(todoItem => {
-    return todoItem.id === req.params.id; // matching each element's id with the id we've got from params
-  });
-  if (!todoToUpdate) {
-    res.json({
-      error: `Todo not found using id: ${req.params.id}`
-    })
-  } else {
-    /** assign will extend current todo item with posted update
-     *  assign extend from right to left
-     **/
-    let updatedTodo = Object.assign(todoToUpdate, update);
-    res.json({
-      todo: updatedTodo,
-      message: "Todo updated successfully"
+  let todoId = req.params.id;
+  console.log(todoId);
+  Todo.findOneAndUpdate({ _id: todoId }, { name: req.body.todo.name },
+    { new: true },
+    (err, todo) => {
+      if (err) {
+        res.json({
+          error: err
+        })
+      } else {
+        res.json({
+          todo: todo,
+          message: "Todo updated successfully"
+        });
+      }
     });
-  }
 });
 
 todoRouter.delete('/:id', (req, res) => { // endpoint '/todo/:id', method : 'DELETE'
-  // find index of the todo to remove / splice
-  const todoToDeleteIndex = todos.findIndex(todoItem => {
-    return todoItem.id === req.params.id; // matching each element's id with the id we've got from params
+  let todoId = req.params.id;
+  Todo.findOneAndRemove({ _id: todoId }, (err, todo) => {
+    if (err) {
+      res.json({
+        error: err
+      })
+    } else {
+      res.json({
+        todo: todo, // sending back the deleted todo
+        message: "Todo deleted successfully"
+      });
+    }
   });
-  if (todoToDeleteIndex === -1) { // this means the todo with provided id doesn't exist
-    res.json({
-      error: `Todo not found using id: ${req.params.id}`
-    });
-  } else {
-    const deletedTodos = todos.splice(todoToDeleteIndex, 1); // splice returns array of deleted/spliced elements
-    res.json({
-      todo: deletedTodos[0], // sending back the deleted todo
-      message: "Todo deleted successfully"
-    });
-  }
 });
 
 module.exports = todoRouter;

@@ -3,7 +3,7 @@ const Todo = require('./todo.model');
 
 module.exports = {
     /** find todo item by id */
-    findById = (id) => {
+    findById: (id) => {
         Todo.findById(id, (err, todo) => {
             if (err) {
                 console.log(err);
@@ -14,25 +14,25 @@ module.exports = {
     },
 
     /** find all todo items that matches search criteria */
-    findAll = (params) => {
-        Todo.find(params, (err, todos) => {
+    findAll: (array) => {
+        array.find((err, todos) => {
             if (err) {
-                console.log(err);
+                return err;
             } else {
-                console.log(todos);
+                return todos;
             }
         });
     },
 
     /** Insert new todo item in to collection */
-    create = (modelInfo) => {
+    create: (modelInfo) => {
         let todoItem = new Todo(modelInfo);
         todoItem.save();
         console.log(`Item created - ${todoItem.name}`);
     },
 
     /** Update existing item info */
-    update = (modelInfo, data) => {
+    update: (modelInfo, data) => {
         Todo.findOneAndUpdate({ _id: modelInfo.id }, data,
             { new: true },
             (err, todo) => {
@@ -45,12 +45,12 @@ module.exports = {
     },
 
     /** delete todo item by id */
-    deleteTodo = (id) => {
+    deleteTodo: (id) => {
         Todo.findOneAndRemove({ _id: id }, (err, todo) => {
             if (err) {
-                console.log(err);
+                return err;
             } else {
-                console.log(todo);
+                return todo;
             }
         });
     }

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 /** Todo model schema */
 const todoSchema = new mongoose.Schema({
+    _id: Number,
     name: String,
     description: String
 });
